@@ -1,0 +1,50 @@
+name: "Sync Upstream"
+description: "Synchronize a branch from an upstream repository to a target repository"
+color: "blue"
+icon: "git-merge"
+inputs:
+  github_token:
+    description: "GitHub token for authentication"
+    required: true
+  target_repository:
+    description: "Target repository in the format owner/repo"
+    required: true
+  target_branch:
+    description: "Branch in the target repository to sync"
+    required: true
+  upstream_repository:
+    description: "Upstream repository in the format owner/repo"
+    required: true
+  upstream_branch:
+    description: "Branch in the upstream repository to sync"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout target branch
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.github_token }}
+        repository: ${{ inputs.target_repository }}
+
+    - name: Configure Git user
+      run: |
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git config --global user.name 'github-actions[bot]'
+      shell: bash
+
+    - name: Add upstream repository
+      run: |
+        git remote add upstream https://github.com/${{ inputs.upstream_repository }}.git
+        git fetch upstream ${{ inputs.upstream_branch }}
+      shell: bash
+
+    - name: Sync target branch with upstream
+      run: |
+        git checkout -B ${{ inputs.target_branch }}
+        git reset --hard upstream/${{ inputs.upstream_branch }}
+      shell: bash
+
+    - name: Push synchronized branch
+      run: git push origin ${{ inputs.target_branch }} --force
+      shell: bash
