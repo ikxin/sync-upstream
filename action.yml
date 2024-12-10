@@ -27,12 +27,6 @@ runs:
         token: ${{ inputs.github_token }}
         repository: ${{ inputs.target_repository }}
 
-    - name: Configure Git user
-      run: |
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git config --global user.name 'github-actions[bot]'
-      shell: bash
-
     - name: Add upstream repository
       run: |
         git remote add upstream https://github.com/${{ inputs.upstream_repository }}.git
@@ -43,6 +37,12 @@ runs:
       run: |
         git checkout -B ${{ inputs.target_branch }}
         git reset --hard upstream/${{ inputs.upstream_branch }}
+      shell: bash
+
+    - name: Sync tags with upstream
+      run: |
+        git fetch upstream --tags
+        git push origin --tags --force
       shell: bash
 
     - name: Push synchronized branch
